@@ -81,8 +81,7 @@ class FileAdapter(dspy.ChatAdapter):
         ):
             if language.lower() == "python":
                 parts = list(location.parts)
-                module = location.stem
-                parts[-1] = module
+                parts[-1] = location.stem
                 return f"from {'.'.join(parts)} import <function-name>"
             else:
                 raise ValueError(f"Use statements not yet implement for {language = }!")
