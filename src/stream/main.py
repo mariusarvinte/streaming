@@ -23,7 +23,7 @@ def main(args):
     )
 
     # Define the project (e.g., for Python, package) structure
-    project_name = "./output"
+    project_name = args.proj_name
     # Create files without dependencies first
     files = {
         "cases": File(Path(f"{project_name}/cases.py")),
@@ -129,6 +129,12 @@ if __name__ == "__main__":
         "--files",
         action="store_true",
         help="Use file-system aware adapter and signature",
+    )
+    parser.add_argument(
+        "--proj_name",
+        type=str,
+        default="./output",
+        help="Location for the LLM to write code in",
     )
     args = parser.parse_args()
 
