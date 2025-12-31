@@ -90,16 +90,20 @@ class FileAdapter(dspy.ChatAdapter):
         use_statements = dict()
         info: Project = self.project.json_schema_extra["desc"]
 
-        for field in signature.output_fields.keys():
-            depends_on: list[Path] = [f.stem for f in info.dependency_map[field]]
+        for name, field in signature.output_fields.items():
+            # Early exit for non-code fields
+            if getattr(field.annotation, "__bases__", None) != (dspy.Code,):
+                continue
+
+            depends_on: list[Path] = [f.stem for f in info.dependency_map[name]]
             # Early exit
             if not depends_on:
                 continue
 
             # Generate use statements and instructions for each dependency
             all_fields = signature.input_fields | signature.output_fields
-            output += f"When generating code for `{field}`, use the following import statements from other outputs:\n"
-            output += f"```{all_fields[field].annotation.language.lower()}\n"
+            output += f"When generating code for `{name}`, use the following import statements from other outputs:\n"
+            output += f"```{all_fields[name].annotation.language.lower()}\n"
 
             for i, dep in enumerate(depends_on):
                 location: Path = info.file_map[dep]
@@ -107,19 +111,19 @@ class FileAdapter(dspy.ChatAdapter):
                     dspy.Code,
                 ) and (
                     all_fields[dep].annotation.language
-                    != all_fields[field].annotation.language
+                    != all_fields[name].annotation.language
                 ):
                     raise ValueError("Cannot generate cross-language use statements!")
 
-                if (field, dep) in use_statements:
-                    use_statement = use_statements[(field, dep)]
+                if (name, dep) in use_statements:
+                    use_statement = use_statements[(name, dep)]
                 else:
                     use_statement: str = generate_use_statement(
                         location,
-                        all_fields[field].annotation.language,
+                        all_fields[name].annotation.language,
                     )
                     # Cache it
-                    use_statements[(field, dep)] = use_statement
+                    use_statements[(name, dep)] = use_statement
 
                 # Add to instructions
                 output += f"{use_statement}\n"

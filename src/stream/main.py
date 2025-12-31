@@ -8,6 +8,8 @@ import dspy
 from stream.adapter import FileAdapter
 from stream.adapter import File, Project
 
+from stream.feedback import ModuleWithCodeFeedback
+
 
 def main(args):
     lm = dspy.LM(
@@ -73,6 +75,9 @@ def main(args):
             desc="A list of paired inputs and outputs for the problem",
         )
 
+        explanation: str = dspy.OutputField(
+            desc="An explanation of the implementation of `solution`"
+        )
         solution: dspy.Code[args.language] = dspy.OutputField(
             desc="Code that when executed with the inputs, produces the expected outputs",
         )
@@ -88,6 +93,11 @@ def main(args):
 
     # Define an AI module that is templated (prompted) to solve the task
     module = dspy.Predict(ProblemSolving)
+    if args.feedback:
+        module = ModuleWithCodeFeedback(
+            base_module=module,
+            project=proj_structure,
+        )
 
     # Perform the task on some inputs
     inputs = {
@@ -113,9 +123,12 @@ def main(args):
 
     # Write the Python code to files
     proj_structure.initialize_modules()
-    for key in ProblemSolving.output_fields.keys():
-        with open(proj_structure.file_map[key], "w") as f:
-            f.write(pred[key].code)
+    for name, field in ProblemSolving.output_fields.items():
+        if getattr(field.annotation, "__bases__", None) != (dspy.Code,):
+            continue
+
+        with open(proj_structure.file_map[name], "w") as f:
+            f.write(pred[name].code)
 
     # FIXME: Figure out how to annotate data structures to-be-converted to code
     written_inputs = ["cases"]
@@ -144,6 +157,11 @@ if __name__ == "__main__":
         type=str,
         default="Python",
         help="Language for the desired LLM output code",
+    )
+    parser.add_argument(
+        "--feedback",
+        action="store_true",
+        help="Use execution feedback",
     )
     args = parser.parse_args()
 

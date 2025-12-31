@@ -26,7 +26,7 @@ class ModuleWithCodeFeedback(dspy.Module):
             for name, module in self.base_module.named_predictors()
         }
         self.base_names: dict[Type[dspy.Signature], str] = {
-            value: key for key, value in self.base_signature.items()
+            value: key for key, value in self.base_signatures.items()
         }
 
         self.project = project
@@ -39,23 +39,23 @@ class ModuleWithCodeFeedback(dspy.Module):
         for name, signature in self.base_signatures.items():
             mod_signature: Type[dspy.Signature] = deepcopy(signature)
 
-            for field in mod_signature.output_fields:
+            for name, field in mod_signature.output_fields.items():
                 # Only for dspy.Code outputs
-                if getattr(field.annotation, "__bases__", None) != dspy.Code:
+                if getattr(field.annotation, "__bases__", None) != (dspy.Code,):
                     continue
 
                 # Insert the trajectory field containing all (possibly truncated) previous attempts
                 mod_signature.append(
-                    f"{field.name}_attempts",
-                    dspy.InputField(desc=f"The previous attempts for `{field.name}`"),
+                    f"{name}_attempts",
+                    dspy.InputField(desc=f"The previous attempts for `{name}`"),
                     type_=list[dspy.Code[f"{field.language}"]],
                 )
 
                 # Insert the code execution outcome from the latest attempt
                 mod_signature.append(
-                    f"{field.name}_outcome",
+                    f"{name}_outcome",
                     dspy.InputField(
-                        desc=f"Outcome of attempting to execute the latest of `{field.name}_attempts`"
+                        desc=f"Outcome of attempting to execute the latest of `{name}_attempts`"
                     ),
                     type_=str,
                 )
