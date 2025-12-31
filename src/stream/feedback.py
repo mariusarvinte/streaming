@@ -1,5 +1,6 @@
 import subprocess
 
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Type
@@ -48,7 +49,7 @@ class ModuleWithCodeFeedback(dspy.Module):
                 mod_signature.append(
                     f"{name}_attempts",
                     dspy.InputField(desc=f"The previous attempts for `{name}`"),
-                    type_=list[dspy.Code[f"{field.language}"]],
+                    type_=list[dspy.Code[f"{field.annotation.language.lower()}"]],
                 )
 
                 # Insert the code execution outcome from the latest attempt
@@ -88,7 +89,7 @@ class ModuleWithCodeFeedback(dspy.Module):
 
         # TODO: dataclass this
         advice: dict[str, str] | None = None
-        attemps: dict[str, list[str]] | None = None
+        attempts: dict[str, list[str]] | None = None
 
         # For each attempt
         for i in range(self.steps):
@@ -105,7 +106,7 @@ class ModuleWithCodeFeedback(dspy.Module):
                     mod_signature = mod_signatures[base_names[signature]]
                     # Pass in trajectory and execution feedback
                     for key, value in advice.items():
-                        inputs[f"{key}_attempts"] = attemps[key]
+                        inputs[f"{key}_attempts"] = attempts[key]
                         inputs[f"{key}_outcome"] = value
 
                     return adapter(lm, lm_kwargs, mod_signature, demos, inputs)
@@ -114,12 +115,16 @@ class ModuleWithCodeFeedback(dspy.Module):
                 outputs = self.base_module(**kwargs)
 
             advice = dict()
-            attempts = dict()
+            if attempts is None:
+                attempts = defaultdict(list)
 
-            # For each code output
-            for output in outputs.keys():
+            for name, field in outputs.items():
+                # For code outputs only
+                if type(field).__base__ != dspy.Code:
+                    continue
+
                 # Execute the code
-                artifact_path = self.project.file_map[output]
+                artifact_path = self.project.file_map[name]
                 message = self.execute_code(
                     artifact_path,
                     language=self.project.language,
@@ -128,12 +133,12 @@ class ModuleWithCodeFeedback(dspy.Module):
                 if message != self.success_message:
                     all_success = False
                 # Pass successful message in case of partial success
-                advice[output] = message
+                advice[name] = message
 
                 # Store attempt and truncate trajectory
-                attempts[output].append(output.code)
+                attempts[name].append(field.code)
                 if self.trajectory_len > 0 and i >= self.trajectory_len:
-                    attempts[output].pop(0)
+                    attempts[name].pop(0)
 
             # Early exit on all success
             if all_success:
