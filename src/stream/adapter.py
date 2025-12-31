@@ -26,32 +26,22 @@ class File:
 
 
 @dataclass
-class Folder:
-    path: Path
+class Project:
     files: list[File] = field(default_factory=list)
-    subfolders: list[Folder] = field(default_factory=list)
 
     def initialize_modules(self) -> None:
-        os.makedirs(self.path, exist_ok=True)
-        (self.path / "__init__.py").touch()
-
-        for folder in self.subfolders:
-            folder.initialize_modules()
+        for file in self.files:
+            os.makedirs(file.path.parent, exist_ok=True)
+            (file.path.parent / "__init__.py").touch()
 
     @cached_property
     def dependency_map(self) -> dict[str, list[Path]]:
         mapping = {f.path.stem: [g.path for g in f.depends_on] for f in self.files}
-        for folder in self.subfolders:
-            mapping.update(folder.dependency_map)
-
         return mapping
 
     @cached_property
     def file_map(self) -> dict[str, Path]:
         mapping = {f.path.stem: f.path for f in self.files}
-        for folder in self.subfolders:
-            mapping.update(folder.file_map)
-
         return mapping
 
 
@@ -99,7 +89,7 @@ class FileAdapter(dspy.ChatAdapter):
 
         # Cache use statements for each pair of locations
         use_statements = dict()
-        info: Folder = self.project.json_schema_extra["desc"]
+        info: Project = self.project.json_schema_extra["desc"]
 
         for field in signature.output_fields.keys():
             depends_on: list[Path] = [f.stem for f in info.dependency_map[field]]

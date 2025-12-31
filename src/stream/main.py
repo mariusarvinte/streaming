@@ -6,7 +6,7 @@ from pathlib import Path
 import dspy
 
 from stream.adapter import FileAdapter
-from stream.adapter import File, Folder
+from stream.adapter import File, Project
 
 
 def main(args):
@@ -56,30 +56,12 @@ def main(args):
         ]
     )
     # Create the folder structure
-    # TODO: The constructor for this should just be a list of files
-    # and directory structure auto-inferred
-    structure: Folder = Folder(
-        path=Path(f"{project_name}"),
-        files=[
-            files["cases"],
-            files["solution"],
-            files["test"],
-        ],
-        subfolders=[
-            Folder(
-                path=Path(f"{project_name}/measurements"),
-                files=[
-                    files["runtime"],
-                    files["memory"],
-                ],
-            )
-        ],
-    )
+    proj_structure: Project = Project(files=list(files.values()))
 
     class ProblemSolving(dspy.Signature):
         """You are an expert in solving algorithmic problems using Python."""
 
-        project: Folder = dspy.InputField(desc=structure)
+        project: Project = dspy.InputField(desc=proj_structure)
 
         problem: str = dspy.InputField(
             desc="The description of the problem to be solved",
@@ -127,15 +109,15 @@ def main(args):
     sys.stdout = original_stdout
 
     # Write the Python code to files
-    structure.initialize_modules()
+    proj_structure.initialize_modules()
     for key in ProblemSolving.output_fields.keys():
-        with open(structure.file_map[key], "w") as f:
+        with open(proj_structure.file_map[key], "w") as f:
             f.write(pred[key].code)
 
     # FIXME: Figure out how to annotate data structures to-be-converted to code
     written_inputs = ["cases"]
     for key in written_inputs:
-        with open(structure.file_map[key], "w") as f:
+        with open(proj_structure.file_map[key], "w") as f:
             f.write(f"{key} = {inputs[key]}")
 
 
