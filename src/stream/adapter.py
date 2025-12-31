@@ -97,12 +97,12 @@ class FileAdapter(dspy.ChatAdapter):
             if not depends_on:
                 continue
 
-            # Introductory instructions
-            output += f"When generating code for `{field}`, use the following import statements from other outputs:\n"
-
             # Generate use statements and instructions for each dependency
             all_fields = signature.input_fields | signature.output_fields
-            for dep in depends_on:
+            output += f"When generating code for `{field}`, use the following import statements from other outputs:\n"
+            output += f"```{all_fields[field].annotation.language.lower()}\n"
+
+            for i, dep in enumerate(depends_on):
                 location: Path = info.file_map[dep]
                 if getattr(all_fields[dep].annotation, "__bases__", None) == (
                     dspy.Code,
@@ -124,6 +124,8 @@ class FileAdapter(dspy.ChatAdapter):
 
                 # Add to instructions
                 output += f"{use_statement}\n"
+            # Add closing fences
+            output += "```\n\n"
 
         return output
 
