@@ -56,7 +56,10 @@ def main(args):
         ]
     )
     # Create the folder structure
-    proj_structure: Project = Project(files=list(files.values()))
+    proj_structure: Project = Project(
+        language=args.language,
+        files=list(files.values()),
+    )
 
     class ProblemSolving(dspy.Signature):
         """You are an expert in solving algorithmic problems using Python."""
@@ -70,16 +73,16 @@ def main(args):
             desc="A list of paired inputs and outputs for the problem",
         )
 
-        solution: dspy.Code["Python"] = dspy.OutputField(
+        solution: dspy.Code[args.language] = dspy.OutputField(
             desc="Code that when executed with the inputs, produces the expected outputs",
         )
-        runtime: dspy.Code["Python"] = dspy.OutputField(
+        runtime: dspy.Code[args.language] = dspy.OutputField(
             desc="Code that profiles the execution time of `solution` when running on `cases`",
         )
-        memory: dspy.Code["Python"] = dspy.OutputField(
+        memory: dspy.Code[args.language] = dspy.OutputField(
             desc="Code that profiles the runtime memory usage of `solution` when running on `cases`",
         )
-        test: dspy.Code["Python"] = dspy.OutputField(
+        test: dspy.Code[args.language] = dspy.OutputField(
             desc="Code that tests the `solution` on the provided `cases` and runs `runtime` and `memory` measurements",
         )
 
@@ -104,7 +107,7 @@ def main(args):
     with open("./history.txt", "w") as f:
         # Redirect stdout to the file
         sys.stdout = f
-        dspy.inspect_history(n=1)
+        dspy.inspect_history(n=5)
     # Restore stdout to the original (usually the console)
     sys.stdout = original_stdout
 
@@ -135,6 +138,12 @@ if __name__ == "__main__":
         type=str,
         default="./output",
         help="Location for the LLM to write code in",
+    )
+    parser.add_argument(
+        "--language",
+        type=str,
+        default="Python",
+        help="Language for the desired LLM output code",
     )
     args = parser.parse_args()
 

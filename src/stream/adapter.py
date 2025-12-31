@@ -27,6 +27,7 @@ class File:
 
 @dataclass
 class Project:
+    language: str
     files: list[File] = field(default_factory=list)
 
     def initialize_modules(self) -> None:
@@ -79,7 +80,6 @@ class FileAdapter(dspy.ChatAdapter):
             language: str,
         ):
             if language.lower() == "python":
-                # NOTE: We could statically get the function name here, if the outputs are processed in topological order
                 parts = list(location.parts)
                 module = location.stem
                 parts[-1] = module
