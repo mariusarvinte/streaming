@@ -46,6 +46,16 @@ class Project:
         return mapping
 
 
+def write_code(pred: dspy.Prediction, proj_structure: Project):
+    # Write the code to files
+    for name, field in pred.items():
+        if type(field).__base__ != dspy.Code:
+            continue
+
+        with open(proj_structure.file_map[name], "w") as f:
+            f.write(pred[name].code)
+
+
 # Custom adapter that injects instructions about cross-output dependencies
 class FileAdapter(dspy.ChatAdapter):
     def __call__(

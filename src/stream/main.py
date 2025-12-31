@@ -18,11 +18,7 @@ def main(args):
         temperature=1.0,
         cache=False,
     )
-    adapter = FileAdapter() if args.files else dspy.ChatAdapter()
-    dspy.configure(
-        lm=lm,
-        adapter=adapter,
-    )
+    dspy.configure(lm=lm)
 
     # Define the project (e.g., for Python, package) structure
     project_name = args.proj_name
@@ -62,6 +58,7 @@ def main(args):
         language=args.language,
         files=list(files.values()),
     )
+    proj_structure.initialize_modules()
 
     class ProblemSolving(dspy.Signature):
         """You are an expert in solving algorithmic problems using Python."""
@@ -110,7 +107,14 @@ def main(args):
             ([26, 999, 1003], [3]),
         ],
     }
-    pred = module(**inputs)
+    # FIXME: Figure out how to annotate data structures to-be-converted to code
+    written_inputs = ["cases"]
+    for key in written_inputs:
+        with open(proj_structure.file_map[key], "w") as f:
+            f.write(f"{key} = {inputs[key]}")
+
+    with dspy.context(adapter=FileAdapter()):
+        pred = module(**inputs)
 
     # Save the original stdout to restore it later
     original_stdout = sys.stdout
@@ -120,21 +124,6 @@ def main(args):
         dspy.inspect_history(n=5)
     # Restore stdout to the original (usually the console)
     sys.stdout = original_stdout
-
-    # Write the Python code to files
-    proj_structure.initialize_modules()
-    for name, field in ProblemSolving.output_fields.items():
-        if getattr(field.annotation, "__bases__", None) != (dspy.Code,):
-            continue
-
-        with open(proj_structure.file_map[name], "w") as f:
-            f.write(pred[name].code)
-
-    # FIXME: Figure out how to annotate data structures to-be-converted to code
-    written_inputs = ["cases"]
-    for key in written_inputs:
-        with open(proj_structure.file_map[key], "w") as f:
-            f.write(f"{key} = {inputs[key]}")
 
 
 if __name__ == "__main__":

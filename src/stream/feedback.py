@@ -8,6 +8,7 @@ from typing import Any, Type
 import dspy
 
 from stream.adapter import Project
+from stream.adapter import write_code
 
 
 class ModuleWithCodeFeedback(dspy.Module):
@@ -40,23 +41,23 @@ class ModuleWithCodeFeedback(dspy.Module):
         for name, signature in self.base_signatures.items():
             mod_signature: Type[dspy.Signature] = deepcopy(signature)
 
-            for name, field in mod_signature.output_fields.items():
+            for field_name, field in mod_signature.output_fields.items():
                 # Only for dspy.Code outputs
                 if getattr(field.annotation, "__bases__", None) != (dspy.Code,):
                     continue
 
                 # Insert the trajectory field containing all (possibly truncated) previous attempts
                 mod_signature.append(
-                    f"{name}_attempts",
-                    dspy.InputField(desc=f"The previous attempts for `{name}`"),
+                    f"{field_name}_attempts",
+                    dspy.InputField(desc=f"The previous attempts for `{field_name}`"),
                     type_=list[dspy.Code[f"{field.annotation.language.lower()}"]],
                 )
 
                 # Insert the code execution outcome from the latest attempt
                 mod_signature.append(
-                    f"{name}_outcome",
+                    f"{field_name}_outcome",
                     dspy.InputField(
-                        desc=f"Outcome of attempting to execute the latest of `{name}_attempts`"
+                        desc=f"Outcome of attempting to execute the latest of `{field_name}_attempts`"
                     ),
                     type_=str,
                 )
@@ -113,6 +114,8 @@ class ModuleWithCodeFeedback(dspy.Module):
 
             with dspy.context(adapter=FeedbackWrapperAdapter()):
                 outputs = self.base_module(**kwargs)
+
+            write_code(outputs, self.project)
 
             advice = dict()
             if attempts is None:
