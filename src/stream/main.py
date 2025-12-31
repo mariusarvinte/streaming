@@ -24,39 +24,53 @@ def main(args):
 
     # Define the project (e.g., for Python, package) structure
     project_name = "./output"
+    # Create files without dependencies first
+    files = {
+        "cases": File(Path(f"{project_name}/cases.py")),
+        "solution": File(Path(f"{project_name}/solution.py")),
+        "test": File(Path(f"{project_name}/test.py")),
+        "runtime": File(Path(f"{project_name}/measurements/runtime.py")),
+        "memory": File(Path(f"{project_name}/measurements/memory.py")),
+    }
+    # Add dependencies to files
+    # NOTE: This is currently built in topological order by hand
+    # FIXME: Use a proper graph library to store this
+    files["runtime"].add_deps(
+        [
+            files["cases"],
+            files["solution"],
+        ]
+    )
+    files["memory"].add_deps(
+        [
+            files["cases"],
+            files["solution"],
+        ]
+    )
+    files["test"].add_deps(
+        [
+            files["cases"],
+            files["solution"],
+            files["runtime"],
+            files["memory"],
+        ]
+    )
+    # Create the folder structure
+    # TODO: The constructor for this should just be a list of files
+    # and directory structure auto-inferred
     structure: Folder = Folder(
         path=Path(f"{project_name}"),
         files=[
-            File(Path(f"{project_name}/cases.py")),
-            File(Path(f"{project_name}/solution.py")),
-            File(
-                Path(f"{project_name}/test.py"),
-                depends_on=[
-                    Path(f"{project_name}/cases.py"),
-                    Path(f"{project_name}/solution.py"),
-                    Path(f"{project_name}/measurements/runtime.py"),
-                    Path(f"{project_name}/measurements/memory.py"),
-                ],
-            ),
+            files["cases"],
+            files["solution"],
+            files["test"],
         ],
         subfolders=[
             Folder(
                 path=Path(f"{project_name}/measurements"),
                 files=[
-                    File(
-                        Path(f"{project_name}/measurements/runtime.py"),
-                        depends_on=[
-                            Path(f"{project_name}/cases.py"),
-                            Path(f"{project_name}/solution.py"),
-                        ],
-                    ),
-                    File(
-                        Path(f"{project_name}/measurements/memory.py"),
-                        depends_on=[
-                            Path(f"{project_name}/cases.py"),
-                            Path(f"{project_name}/solution.py"),
-                        ],
-                    ),
+                    files["runtime"],
+                    files["memory"],
                 ],
             )
         ],
@@ -66,6 +80,7 @@ def main(args):
         """You are an expert in solving algorithmic problems using Python."""
 
         project: Folder = dspy.InputField(desc=structure)
+
         problem: str = dspy.InputField(
             desc="The description of the problem to be solved",
         )
@@ -121,7 +136,7 @@ def main(args):
     written_inputs = ["cases"]
     for key in written_inputs:
         with open(structure.file_map[key], "w") as f:
-            f.write(f'{key} = {inputs[key]}')
+            f.write(f"{key} = {inputs[key]}")
 
 
 if __name__ == "__main__":

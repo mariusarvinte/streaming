@@ -15,7 +15,14 @@ from dspy.adapters.types.base_type import split_message_content_for_custom_types
 @dataclass
 class File:
     path: Path
-    depends_on: list[Path] = field(default_factory=list)
+    depends_on: list[File] = field(default_factory=list)
+
+    def add_deps(self, deps: list[File]):
+        self.depends_on.extend(deps)
+
+    @classmethod
+    def with_deps(cls, file: File, deps: list[File]) -> File:
+        return File(path=file.path, depends_on=deps)
 
 
 @dataclass
@@ -33,7 +40,7 @@ class Folder:
 
     @cached_property
     def dependency_map(self) -> dict[str, list[Path]]:
-        mapping = {f.path.stem: f.depends_on for f in self.files}
+        mapping = {f.path.stem: [g.path for g in f.depends_on] for f in self.files}
         for folder in self.subfolders:
             mapping.update(folder.dependency_map)
 
