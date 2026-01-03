@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 import dspy
 
-from stream.adapter import FileAdapter
-from stream.adapter import File, Project
+from stream.project import FileAdapter
+from stream.project import File, Project
 
 from stream.feedback import ModuleWithCodeFeedback
 

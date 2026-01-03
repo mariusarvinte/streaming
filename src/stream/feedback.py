@@ -7,8 +7,8 @@ from typing import Any, Type
 
 import dspy
 
-from stream.adapter import Project
-from stream.adapter import write_code
+from stream.project import Project
+from stream.project import write_code
 
 
 class ModuleWithCodeFeedback(dspy.Module):
