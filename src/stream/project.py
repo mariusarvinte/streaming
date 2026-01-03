@@ -42,7 +42,7 @@ class Project:
 
     @cached_property
     def file_map(self) -> dict[str, Path]:
-        mapping = {f.path.stem: f.path for f in self.files}
+        mapping = {f.path.stem: f.path.with_suffix(".py") for f in self.files}
         return mapping
 
 
@@ -115,7 +115,7 @@ class FileAdapter(dspy.ChatAdapter):
             output += f"When generating code for `{name}`, use the following import statements from other outputs:\n"
             output += f"```{all_fields[name].annotation.language.lower()}\n"
 
-            for i, dep in enumerate(depends_on):
+            for dep in depends_on:
                 location: Path = info.file_map[dep]
                 if getattr(all_fields[dep].annotation, "__bases__", None) == (
                     dspy.Code,

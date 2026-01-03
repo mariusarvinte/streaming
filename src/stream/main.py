@@ -24,11 +24,11 @@ def main(args):
     project_name = args.proj_name
     # Create files without dependencies first
     files = {
-        "cases": File(Path(f"{project_name}/cases.py")),
-        "solution": File(Path(f"{project_name}/solution.py")),
-        "test": File(Path(f"{project_name}/test.py")),
-        "runtime": File(Path(f"{project_name}/measurements/runtime.py")),
-        "memory": File(Path(f"{project_name}/measurements/memory.py")),
+        "cases": File(Path(f"{project_name}/cases")),
+        "solution": File(Path(f"{project_name}/solution")),
+        "test": File(Path(f"{project_name}/test")),
+        "runtime": File(Path(f"{project_name}/measurements/runtime")),
+        "memory": File(Path(f"{project_name}/measurements/memory")),
     }
     # Add dependencies to files
     # NOTE: This is currently built in topological order by hand
