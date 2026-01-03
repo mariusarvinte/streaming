@@ -47,14 +47,14 @@ class ModuleWithCodeFeedback(dspy.Module):
                     continue
 
                 # Insert the trajectory field containing all (possibly truncated) previous attempts
-                mod_signature.append(
+                mod_signature = mod_signature.append(
                     f"{field_name}_attempts",
                     dspy.InputField(desc=f"The previous attempts for `{field_name}`"),
                     type_=list[dspy.Code[f"{field.annotation.language.lower()}"]],
                 )
 
                 # Insert the code execution outcome from the latest attempt
-                mod_signature.append(
+                mod_signature = mod_signature.append(
                     f"{field_name}_outcome",
                     dspy.InputField(
                         desc=f"Outcome of attempting to execute the latest of `{field_name}_attempts`"
