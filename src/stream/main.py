@@ -8,6 +8,7 @@ import dspy
 from stream.project import FileAdapter
 from stream.project import File, Project
 
+from stream.language import write_array_to_file
 from stream.feedback import ModuleWithCodeFeedback
 
 
@@ -68,8 +69,8 @@ def main(args):
         problem: str = dspy.InputField(
             desc="The description of the problem to be solved",
         )
-        cases: list[tuple[list[int], list[int]]] = dspy.InputField(
-            desc="A list of paired inputs and outputs for the problem",
+        cases: dspy.Code[args.language] = dspy.InputField(
+            desc="The paired inputs and outputs for the problem written as jagged arrays",
         )
 
         explanation: str = dspy.OutputField(
@@ -101,22 +102,21 @@ def main(args):
             project=proj_structure,
         )
 
+    # The test cases for the problem (jagged array)
+    cases = [
+        ([1, 1, 4, 6, 7, 9], [5]),
+        ([4, 4, 4, 4, 4], [1]),
+        ([26, 999, 1003], [3]),
+    ]
+    write_array_to_file(cases, proj_structure.file_map["cases"])
+
     # Perform the task on some inputs
     inputs = {
         "project": None,
         "problem": """Given an integer array `nums` sorted in non-decreasing order, consider the number of unique elements in `nums` to be `k`.
     Return the number of unique elements `k`.""",
-        "cases": [
-            ([1, 1, 4, 6, 7, 9], [5]),
-            ([4, 4, 4, 4, 4], [1]),
-            ([26, 999, 1003], [3]),
-        ],
+        "cases": proj_structure.file_map["cases"].read_text(),
     }
-    # FIXME: Figure out how to annotate data structures to-be-converted to code
-    written_inputs = ["cases"]
-    for key in written_inputs:
-        with open(proj_structure.file_map[key], "w") as f:
-            f.write(f"{key} = {inputs[key]}")
 
     with dspy.context(adapter=FileAdapter()):
         pred = module(**inputs)
