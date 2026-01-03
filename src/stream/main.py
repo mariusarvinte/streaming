@@ -61,7 +61,7 @@ def main(args):
     proj_structure.initialize_modules()
 
     class ProblemSolving(dspy.Signature):
-        """You are an expert in solving algorithmic problems using Python."""
+        """You are an expert in solving algorithmic problems using {language}."""
 
         project: Project = dspy.InputField(desc=proj_structure)
 
@@ -87,6 +87,11 @@ def main(args):
         test: dspy.Code[args.language] = dspy.OutputField(
             desc="Code that tests the `solution` on the provided `cases` and runs `runtime` and `memory` measurements",
         )
+
+    # Inject the language in the signature instructions
+    ProblemSolving = ProblemSolving.with_instructions(
+        ProblemSolving.__doc__.format(language=args.language)
+    )
 
     # Define an AI module that is templated (prompted) to solve the task
     module = dspy.Predict(ProblemSolving)
