@@ -20,6 +20,10 @@ class Project:
         def add_deps(self, deps: list[Self]):
             self.depends_on.extend(deps)
 
+    @cached_property
+    def suffix(self) -> str:
+        return ".py"
+
     def initialize_modules(self) -> None:
         for file in self.files:
             os.makedirs(file.path.parent, exist_ok=True)
@@ -28,14 +32,14 @@ class Project:
     @cached_property
     def dependency_map(self) -> dict[str, list[Path]]:
         mapping = {
-            f.path.stem: [g.path.with_suffix(".py") for g in f.depends_on]
+            f.path.stem: [g.path.with_suffix(self.suffix) for g in f.depends_on]
             for f in self.files
         }
         return mapping
 
     @cached_property
     def file_map(self) -> dict[str, Path]:
-        mapping = {f.path.stem: f.path.with_suffix(".py") for f in self.files}
+        mapping = {f.path.stem: f.path.with_suffix(self.suffix) for f in self.files}
         return mapping
 
 
@@ -67,7 +71,7 @@ def execute_code(
     return result.stderr
 
 
-def write_array_to_file(
+def write_jagged_array_to_file(
     array: list[tuple[list[int], list[int]]],
     filename_with_ext: Path,
 ) -> None:

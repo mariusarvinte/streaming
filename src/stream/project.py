@@ -6,8 +6,8 @@ from dspy import Signature
 from dspy.clients.lm import LM
 from dspy.adapters.types.base_type import split_message_content_for_custom_types
 
-from stream.language import Project
-from stream.language import generate_use_statement
+from stream.language.completed.python import Project
+from stream.language.completed.python import generate_use_statement
 
 
 def write_code(pred: dspy.Prediction, project: Project):

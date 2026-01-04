@@ -1,16 +1,13 @@
-import subprocess
-
 from collections import defaultdict
 from copy import deepcopy
-from pathlib import Path
 from typing import Any, Type
 
 import dspy
 
-from stream.project import Project
 from stream.project import write_code
 
-from stream.language import execute_code
+from stream.language.completed.python import Project
+from stream.language.completed.python import execute_code
 
 
 class ModuleWithCodeFeedback(dspy.Module):
