@@ -1,58 +1,22 @@
-import os
-
 from pathlib import Path
 from typing import Any
-
-from dataclasses import dataclass, field
-from functools import cached_property
 
 import dspy
 from dspy import Signature
 from dspy.clients.lm import LM
 from dspy.adapters.types.base_type import split_message_content_for_custom_types
 
-
-@dataclass
-class File:
-    path: Path
-    depends_on: list[File] = field(default_factory=list)
-
-    def add_deps(self, deps: list[File]):
-        self.depends_on.extend(deps)
-
-    @classmethod
-    def with_deps(cls, file: File, deps: list[File]) -> File:
-        return File(path=file.path, depends_on=deps)
+from stream.language import Project
+from stream.language import generate_use_statement
 
 
-@dataclass
-class Project:
-    language: str
-    files: list[File] = field(default_factory=list)
-
-    def initialize_modules(self) -> None:
-        for file in self.files:
-            os.makedirs(file.path.parent, exist_ok=True)
-            (file.path.parent / "__init__.py").touch()
-
-    @cached_property
-    def dependency_map(self) -> dict[str, list[Path]]:
-        mapping = {f.path.stem: [g.path for g in f.depends_on] for f in self.files}
-        return mapping
-
-    @cached_property
-    def file_map(self) -> dict[str, Path]:
-        mapping = {f.path.stem: f.path.with_suffix(".py") for f in self.files}
-        return mapping
-
-
-def write_code(pred: dspy.Prediction, proj_structure: Project):
+def write_code(pred: dspy.Prediction, project: Project):
     # Write the code to files
     for name, field in pred.items():
         if type(field).__base__ != dspy.Code:
             continue
 
-        with open(proj_structure.file_map[name], "w") as f:
+        with open(project.file_map[name], "w") as f:
             f.write(pred[name].code)
 
 
@@ -84,18 +48,6 @@ class FileAdapter(dspy.ChatAdapter):
     ) -> str:
         output = f""
 
-        # Helper function that generates a language-dependent use statement
-        def generate_use_statement(
-            location: str,
-            language: str,
-        ):
-            if language.lower() == "python":
-                parts = list(location.parts)
-                parts[-1] = location.stem
-                return f"from {'.'.join(parts)} import <function-name>"
-            else:
-                raise ValueError(f"Use statements not yet implement for {language = }!")
-
         # Cache use statements for each pair of locations
         use_statements = dict()
         info: Project = self.project.json_schema_extra["desc"]
@@ -112,7 +64,7 @@ class FileAdapter(dspy.ChatAdapter):
 
             # Generate use statements and instructions for each dependency
             all_fields = signature.input_fields | signature.output_fields
-            output += f"When generating code for `{name}`, use the following import statements from other outputs:\n"
+            output += f"When generating code for `{name}`, use the following code to re-use other outputs:\n"
             output += f"```{all_fields[name].annotation.language.lower()}\n"
 
             for dep in depends_on:
@@ -128,11 +80,7 @@ class FileAdapter(dspy.ChatAdapter):
                 if (name, dep) in use_statements:
                     use_statement = use_statements[(name, dep)]
                 else:
-                    use_statement: str = generate_use_statement(
-                        location,
-                        all_fields[name].annotation.language,
-                    )
-                    # Cache it
+                    use_statement: str = generate_use_statement(location)
                     use_statements[(name, dep)] = use_statement
 
                 # Add to instructions

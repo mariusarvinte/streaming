@@ -6,10 +6,10 @@ from pathlib import Path
 import dspy
 
 from stream.project import FileAdapter
-from stream.project import File, Project
-
-from stream.language import write_array_to_file
 from stream.feedback import ModuleWithCodeFeedback
+
+from stream.language import Project
+from stream.language import write_array_to_file
 
 
 def main(args):
@@ -21,15 +21,15 @@ def main(args):
     )
     dspy.configure(lm=lm)
 
-    # Define the project (e.g., for Python, package) structure
+    # Define the project structure
     project_name = args.proj_name
     # Create files without dependencies first
     files = {
-        "cases": File(Path(f"{project_name}/cases")),
-        "solution": File(Path(f"{project_name}/solution")),
-        "test": File(Path(f"{project_name}/test")),
-        "runtime": File(Path(f"{project_name}/measurements/runtime")),
-        "memory": File(Path(f"{project_name}/measurements/memory")),
+        "cases": Project.File(Path(f"{project_name}/cases")),
+        "solution": Project.File(Path(f"{project_name}/solution")),
+        "test": Project.File(Path(f"{project_name}/test")),
+        "runtime": Project.File(Path(f"{project_name}/measurements/runtime")),
+        "memory": Project.File(Path(f"{project_name}/measurements/memory")),
     }
     # Add dependencies to files
     # NOTE: This is currently built in topological order by hand

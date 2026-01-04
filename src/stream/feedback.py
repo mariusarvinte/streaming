@@ -10,6 +10,8 @@ import dspy
 from stream.project import Project
 from stream.project import write_code
 
+from stream.language import execute_code
+
 
 class ModuleWithCodeFeedback(dspy.Module):
     def __init__(
@@ -64,25 +66,6 @@ class ModuleWithCodeFeedback(dspy.Module):
 
             self.mod_signatures[name] = mod_signature
 
-    def execute_code(
-        self, artifact_path: Path, language: str, success_message: str
-    ) -> str:
-        if language.lower() == "python":
-            # The artifact is a module
-            parts = list(artifact_path.parts)
-            parts[-1] = artifact_path.stem
-            module_name = f"{'.'.join(parts)}"
-            command = f"uv run -m {module_name}"
-        else:
-            raise ValueError(f"Execution commands not yet implement for {language = }!")
-
-        # Execute the command
-        result = subprocess.run(command, capture_output=True)
-        if result.returncode == 0:
-            return success_message
-
-        return result.stderr
-
     def forward(self, **kwargs):
         adapter = dspy.settings.adapter or dspy.ChatAdapter()
         mod_signatures = self.mod_signatures
@@ -128,9 +111,9 @@ class ModuleWithCodeFeedback(dspy.Module):
 
                 # Execute the code
                 artifact_path = self.project.file_map[name]
-                message = self.execute_code(
+                message = execute_code(
                     artifact_path,
-                    language=self.project.language,
+                    project=self.project,
                     success_message=self.success_message,
                 )
                 if message != self.success_message:
