@@ -12,24 +12,14 @@ from stream.language.completed.python import Project
 from stream.language.completed.python import write_jagged_array_to_file
 
 
-def main(args):
-    lm = dspy.LM(
-        model="openrouter/nvidia/nemotron-3-nano-30b-a3b:free",
-        api_key=os.environ["OPENROUTER_API_KEY"],
-        temperature=1.0,
-        cache=False,
-    )
-    dspy.configure(lm=lm)
-
-    # Define the project structure
-    project_name = args.proj_name
+def get_project_structure(name: str, language: str, project_class: type) -> Project:
     # Create files without dependencies first
     files = {
-        "cases": Project.File(Path(f"{project_name}/cases")),
-        "solution": Project.File(Path(f"{project_name}/solution")),
-        "test": Project.File(Path(f"{project_name}/test")),
-        "runtime": Project.File(Path(f"{project_name}/measurements/runtime")),
-        "memory": Project.File(Path(f"{project_name}/measurements/memory")),
+        "cases": project_class.File(Path(f"{name}/cases")),
+        "solution": project_class.File(Path(f"{name}/solution")),
+        "test": project_class.File(Path(f"{name}/test")),
+        "runtime": project_class.File(Path(f"{name}/measurements/runtime")),
+        "memory": project_class.File(Path(f"{name}/measurements/memory")),
     }
     # Add dependencies to files
     # NOTE: This is currently built in topological order by hand
@@ -54,11 +44,26 @@ def main(args):
             files["memory"],
         ]
     )
-    # Create the folder structure
-    proj_structure: Project = Project(
-        language=args.language,
+
+    project = project_class(
+        language=language,
         files=list(files.values()),
     )
+
+    return project
+
+
+def main(args):
+    lm = dspy.LM(
+        model="openrouter/nvidia/nemotron-3-nano-30b-a3b:free",
+        api_key=os.environ["OPENROUTER_API_KEY"],
+        temperature=1.0,
+        cache=False,
+    )
+    dspy.configure(lm=lm)
+
+    # Create the folder structure
+    proj_structure = get_project_structure(args.proj_name, args.language, Project)
     proj_structure.initialize_modules()
 
     class ProblemSolving(dspy.Signature):

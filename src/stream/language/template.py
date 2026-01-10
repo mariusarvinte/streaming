@@ -44,6 +44,16 @@ class Project:
         return mapping
 
 
+def write_jagged_array_to_file(
+    array: list[tuple[list[int], list[int]]],
+    filename_with_ext: Path,
+) -> None:
+    with open(filename_with_ext, "w") as f:
+        # TODO: Populate this
+        # NOTE: This function should write the Python `array` to a global variable in the given language
+        pass
+
+
 def generate_use_statement(location: Path):
     # TODO: Populate this
     # NOTE: Avoid using "all" / "star" imports, rather use generic function names as a template e.g., `some_fn_or_variable`
@@ -78,11 +88,3 @@ def execute_code(
     return result.stderr
 
 
-def write_jagged_array_to_file(
-    array: list[tuple[list[int], list[int]]],
-    filename_with_ext: Path,
-) -> None:
-    with open(filename_with_ext, "w") as f:
-        # TODO: Populate this
-        # NOTE: This function should write the Python `array` to a global variable in the given language
-        pass
