@@ -19,12 +19,10 @@ class Project:
     @cached_property
     def suffix(self) -> str:
         # TODO: Populate this
-        # NOTE: For example, in Python this would be ".py"
         ...
 
     def initialize_modules(self) -> None:
         # TODO: Populate this
-        # NOTE: For example, in Python this would be writing __init__.py files in the parent folder of each file
         ...
 
     @cached_property
