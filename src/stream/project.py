@@ -19,7 +19,7 @@ def write_code(
             continue
 
         code = (
-            "\n\n".join([code, extra[name]])
+            "\n\n".join([pred[name].code, extra[name]])
             if extra and extra.get(name)
             else pred[name].code
         )
