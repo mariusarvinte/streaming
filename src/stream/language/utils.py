@@ -7,9 +7,10 @@ def split_code(code: str, separator: str) -> tuple[str]:
 
 def validate_with_template(
     template: str | None, code: str, allowed_change: str
-) -> tuple[bool, str]:
+) -> tuple[bool, str | None]:
+    feedback = None
     if template is None:
-        return True, ""
+        return True, feedback
 
     # Escape special characters in strings
     template = template.replace("\\n", "\\\\n").replace("\\t", "\\\\t")
@@ -19,59 +20,50 @@ def validate_with_template(
     lines_template = template.splitlines()
     lines_code = code.splitlines()
     diffs = list(d.compare(lines_template, lines_code))
+    indents = [None for diff in diffs]
+    allowed = [False for diff in diffs]
+    valid = [False for diff in diffs]
 
-    streak: bool = False
-    indent_allowed: int | None = None
-    valid: bool = True
-    feedback: str | None = None
+    # Populate the indent and marker for each line
+    indent_previous = 0
+    for i, diff in enumerate(diffs):
+        _, diff_code = diff[:2], diff[2:]
+        # Treat newlines as part of the previous level set
+        indent_current = (
+            indent_previous
+            if diff_code.strip() == ""
+            else len(diff_code) - len(diff_code.lstrip())
+        )
+        indent_previous = indents[i] = indent_current
 
-    for diff in diffs:
+        if diff_code.strip().startswith(allowed_change):
+            allowed[i] = True
+
+    # For each changed line, determine if an allowed line is on its level set
+    for i, diff in enumerate(diffs):
         diff_type, diff_code = diff[:2], diff[2:]
-        if (
-            diff_type in ["  ", "- "]
-            and diff_code.strip().startswith(allowed_change)
-            and not streak
-        ):
-            # We start a streak and capture the indentation level
-            streak = True
-            indent_allowed = len(diff_code) - len(diff_code.lstrip())
+        indent_current = indents[i]
 
-        elif (
-            diff_type == "  "
-            and not diff_code.strip().startswith(allowed_change)
-            and not streak
-        ):
-            # Nothing
-            pass
+        # Marker lines should auto-pass
+        if allowed[i] or diff_type == "  ":
+            valid[i] = True
 
-        elif diff_type in ["- ", "+ "] and not streak:
-            # Something somewhere else was modified
-            valid = False
-            feedback = "You did something wrong!"
-            break
+        if diff_type in ["- ", "+ "]:
+            # Search for the marker below
+            for j in range(i + 1, len(diffs)):
+                if indent_current == indents[j] and allowed[j]:
+                    valid[i] = True
+                if indent_current > indents[j]:
+                    break
 
-        elif (
-            diff_type == "  "
-            and not diff_code.strip().startswith(allowed_change)
-            and streak
-        ):
-            streak = False
+            # Search for the marker above
+            for j in range(i - 1, -1, -1):
+                if indent_current == indents[j] and allowed[j]:
+                    valid[i] = True
+                if indent_current > indents[j]:
+                    break
 
-        elif diff_type in ["- ", "+ "] and streak:
-            if indent_allowed is None:
-                raise ValueError("The indent level should always be set in a streak!")
+    if not all(valid):
+        feedback = f"You must strictly follow the provided template and only modify the code where it is marked with {allowed_change}!"
 
-            # Newlines are always valid inside a streak
-            indent_current = (
-                indent_allowed
-                if diff_code.strip() == ""
-                else len(diff_code) - len(diff_code.lstrip())
-            )
-
-            # Check for correct Python indenting
-            if indent_current < indent_allowed:
-                valid = False
-                feedback = "You did something wrong!"
-                break
-
-    return valid, feedback
+    return all(valid), feedback

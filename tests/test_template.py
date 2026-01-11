@@ -120,4 +120,7 @@ def test_valid_newline_with_template(
 def test_invalid_with_template(template: str, invalid: str, allowed_change: str):
     valid, feedback = validate_with_template(template, invalid, allowed_change)
     assert valid == False
-    assert feedback == "You did something wrong!"
+    assert (
+        feedback
+        == "You must strictly follow the provided template and only modify the code where it is marked with # TODO:!"
+    )
