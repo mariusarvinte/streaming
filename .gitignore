@@ -23,5 +23,5 @@ env.bak/
 venv.bak/
 
 # DSPy helpers
-history.txt
+history*.txt
 output
