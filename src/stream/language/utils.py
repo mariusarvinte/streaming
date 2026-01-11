@@ -25,7 +25,6 @@ def validate_with_template(
     valid: bool = True
     feedback: str | None = None
 
-    breakpoint()
     for diff in diffs:
         diff_type, diff_code = diff[:2], diff[2:]
         if (
