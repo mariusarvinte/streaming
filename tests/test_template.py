@@ -82,13 +82,42 @@ def added_fn(self):
 """.strip()
 
 
-def test_valid_with_template(valid: str, template: str, allowed_change: str):
+@pytest.fixture
+def valid_newline() -> str:
+    return """
+def other_fn(args):
+    return False
+
+def some_fn(args):
+    print("Newline!\\n")
+
+class Stuff:
+    def __init__():
+        self.a = 1
+
+    def method(self):
+        # TODO: Populate this
+    
+    def do_not_touch(self):
+        return False
+""".strip()
+
+
+def test_valid_with_template(template: str, valid: str, allowed_change: str):
     valid, feedback = validate_with_template(template, valid, allowed_change)
     assert valid == True
     assert feedback is None
 
 
-def test_invalid_with_template(invalid: str, template: str, allowed_change: str):
+def test_valid_newline_with_template(
+    template: str, valid_newline: str, allowed_change: str
+):
+    valid, feedback = validate_with_template(template, valid_newline, allowed_change)
+    assert valid == True
+    assert feedback is None
+
+
+def test_invalid_with_template(template: str, invalid: str, allowed_change: str):
     valid, feedback = validate_with_template(template, invalid, allowed_change)
     assert valid == False
     assert feedback == "You did something wrong!"

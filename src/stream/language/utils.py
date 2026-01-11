@@ -11,6 +11,10 @@ def validate_with_template(
     if template is None:
         return True, ""
 
+    # Escape special characters in strings
+    template = template.replace("\\n", "\\\\n").replace("\\t", "\\\\t")
+    code = code.replace("\\n", "\\\\n").replace("\\t", "\\\\t")
+
     d = difflib.Differ()
     lines_template = template.splitlines()
     lines_code = code.splitlines()
@@ -21,6 +25,7 @@ def validate_with_template(
     valid: bool = True
     feedback: str | None = None
 
+    breakpoint()
     for diff in diffs:
         diff_type, diff_code = diff[:2], diff[2:]
         if (
