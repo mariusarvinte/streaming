@@ -12,7 +12,7 @@ from stream.language.completed.python import Project
 from stream.language.completed.python import write_jagged_array_to_file
 
 
-def get_project_structure(name: str, language: str, project_class: type) -> Project:
+def get_project_structure(name: str, project_class: type) -> Project:
     # Create files without dependencies first
     files = {
         "cases": project_class.File(Path(f"{name}/cases")),
@@ -45,11 +45,7 @@ def get_project_structure(name: str, language: str, project_class: type) -> Proj
         ]
     )
 
-    project = project_class(
-        language=language,
-        files=list(files.values()),
-    )
-
+    project = project_class(files=list(files.values()))
     return project
 
 
@@ -63,7 +59,7 @@ def main(args):
     dspy.configure(lm=lm)
 
     # Create the folder structure
-    proj_structure = get_project_structure(args.proj_name, args.language, Project)
+    proj_structure = get_project_structure(args.proj_name, Project)
     proj_structure.initialize_modules()
 
     class ProblemSolving(dspy.Signature):
@@ -101,11 +97,10 @@ def main(args):
 
     # Define an AI module that is templated (prompted) to solve the task
     module = dspy.Predict(ProblemSolving)
-    if args.feedback:
-        module = ModuleWithCodeFeedback(
-            base_module=module,
-            project=proj_structure,
-        )
+    module = ModuleWithCodeFeedback(
+        base_module=module,
+        project=proj_structure,
+    )
 
     # The test cases for the problem (jagged array)
     cases = [
@@ -156,11 +151,6 @@ if __name__ == "__main__":
         type=str,
         default="Python",
         help="Language for the desired LLM output code",
-    )
-    parser.add_argument(
-        "--feedback",
-        action="store_true",
-        help="Use execution feedback",
     )
     args = parser.parse_args()
 
