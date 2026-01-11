@@ -116,7 +116,7 @@ class ModuleWithCodeFeedback(dspy.Module):
                 write_code(
                     outputs[name].code,
                     artifact_path,
-                    extra=self.test_code.get(name),
+                    extra=self.test_code.get(name) if self.test_code else None,
                 )
                 # Store attempt and truncate trajectory
                 attempts[name].append(field.code)
