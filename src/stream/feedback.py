@@ -5,6 +5,7 @@ from typing import Any, Type
 import dspy
 
 from stream.project import write_code
+from stream.language.utils import validate_with_template
 
 from stream.language.completed.python import Project
 from stream.language.completed.python import execute_code
@@ -17,6 +18,8 @@ class ModuleWithCodeFeedback(dspy.Module):
         project: Project,
         steps: int = 3,
         test_code: dict[str, str] | None = None,
+        allowed_changes: str | None = None,
+        template_changes: str | None = None,
         success_message: str = "Code executed successfully!",
         trajectory_len: int = 0,
     ):
@@ -34,6 +37,8 @@ class ModuleWithCodeFeedback(dspy.Module):
         self.project = project
         self.steps = steps
         self.test_code = test_code
+        self.allowed_changes = allowed_changes
+        self.template_changes = template_changes
         self.success_message = success_message
         self.trajectory_len = trajectory_len
 
@@ -97,8 +102,6 @@ class ModuleWithCodeFeedback(dspy.Module):
             with dspy.context(adapter=FeedbackWrapperAdapter()):
                 outputs = self.base_module(**kwargs)
 
-            write_code(outputs, self.project, extra=self.test_code)
-
             advice = dict()
             if attempts is None:
                 attempts = defaultdict(list)
@@ -108,22 +111,35 @@ class ModuleWithCodeFeedback(dspy.Module):
                 if type(field).__base__ != dspy.Code:
                     continue
 
-                # Execute the code
+                # Write the code to disk
                 artifact_path = self.project.file_map[name]
-                message = execute_code(
+                write_code(
+                    outputs[name].code,
                     artifact_path,
-                    project=self.project,
-                    success_message=self.success_message,
+                    extra=self.test_code.get(name),
                 )
-                if message != self.success_message:
-                    all_success = False
-                # Pass successful message in case of partial success
-                advice[name] = message
-
                 # Store attempt and truncate trajectory
                 attempts[name].append(field.code)
                 if self.trajectory_len > 0 and i >= self.trajectory_len:
                     attempts[name].pop(0)
+
+                # Validate the code against the template
+                valid, feedback = validate_with_template(
+                    self.template_changes, outputs[name].code, self.allowed_changes
+                )
+                if not valid:
+                    all_success = False
+                    advice[name] = feedback
+                else:
+                    # Attempt to execute the code
+                    message = execute_code(
+                        artifact_path,
+                        project=self.project,
+                        success_message=self.success_message,
+                    )
+                    if message != self.success_message:
+                        all_success = False
+                    advice[name] = message
 
             # Early exit on all success
             if all_success:

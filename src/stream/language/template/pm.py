@@ -53,13 +53,13 @@ def write_jagged_array_to_file(
 
 if __name__ == "__main__":
     test_files = [
-        Project.File(path=Path("some/folder/test")),
-        Project.File(path=Path("some/folder/inside/file")),
+        Project.File(path=Path("output_meta/folder/test")),
+        Project.File(path=Path("output_meta/folder/inside/file")),
         Project.File(
-            path=Path("some/folder/inside/meta"),
+            path=Path("output_meta/folder/inside/meta"),
             depends_on=[
-                Project.File(path=Path("some/folder/test")),
-                Project.File(path=Path("some/folder/inside/file")),
+                Project.File(path=Path("output_meta/folder/test")),
+                Project.File(path=Path("output_meta/folder/inside/file")),
             ],
         ),
     ]
@@ -80,5 +80,7 @@ if __name__ == "__main__":
             [8, 24, 1],
         ),
     ]
-    for file in Project.files:
-        write_jagged_array_to_file(test_array, file.path)
+    for file in test_project.files:
+        write_jagged_array_to_file(
+            test_array, file.path.with_suffix(test_project.suffix)
+        )

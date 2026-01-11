@@ -25,3 +25,6 @@ venv.bak/
 # DSPy helpers
 history*.txt
 output
+
+# AI outputs
+src/stream/language/completed/pm.py

@@ -52,12 +52,13 @@ def main(args):
 
     # Instantiate the dspy.Module
     project_manager = dspy.Predict(ProjectManager)
-    if args.feedback:
-        project_manager = ModuleWithCodeFeedback(
-            base_module=project_manager,
-            project=proj_structure,
-            test_code=dict(pm="\n".join((statement, test))),
-        )
+    project_manager = ModuleWithCodeFeedback(
+        base_module=project_manager,
+        project=proj_structure,
+        test_code=dict(pm="\n".join((statement, test))),
+        allowed_changes="# TODO:",
+        template_changes=template,
+    )
 
     inputs = {
         "language": args.language,
@@ -91,11 +92,6 @@ if __name__ == "__main__":
         type=str,
         default="src/stream/language/template/pm.py",
         help="Path to the template file",
-    )
-    parser.add_argument(
-        "--feedback",
-        action="store_true",
-        help="Use execution feedback",
     )
     args = parser.parse_args()
 
