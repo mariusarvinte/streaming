@@ -50,6 +50,7 @@ def generate_use_statement(location: Path):
 
 def execute_code(
     artifact_path: Path,
+    project: Project,
     success_message: str,
 ) -> str:
     # The artifact is a module
