@@ -1,6 +1,3 @@
-import os
-import subprocess
-
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
@@ -24,9 +21,10 @@ class Project:
         return ".py"
 
     def initialize_modules(self) -> None:
-        for file in self.files:
-            os.makedirs(file.path.parent, exist_ok=True)
-            (file.path.parent / "__init__.py").touch()
+        # Ensure each file's parent directory has an __init__.py
+        for f in self.files:
+            init_path = f.path.parent / "__init__.py"
+            init_path.touch(exist_ok=True)
 
     @cached_property
     def dependency_map(self) -> dict[str, list[Path]]:
@@ -42,34 +40,10 @@ class Project:
         return mapping
 
 
-def generate_use_statement(location: Path):
-    parts = list(location.parts)
-    parts[-1] = location.stem
-    return f"from {'.'.join(parts)} import <function-or-variable-name>"
-
-
-def execute_code(
-    artifact_path: Path,
-    success_message: str,
-) -> str:
-    # The artifact is a module
-    parts = list(artifact_path.parts)
-    parts[-1] = artifact_path.stem
-    module_name = f"{'.'.join(parts)}"
-    command = f"uv run -m {module_name}"
-
-    # Execute the command
-    result = subprocess.run(command, capture_output=True)
-    if result.returncode == 0:
-        return success_message
-
-    return result.stderr
-
-
 def write_jagged_array_to_file(
     array: list[tuple[list[int], list[int]]],
     filename_with_ext: Path,
 ) -> None:
-    # Write a single multi-dimensional array
     with open(filename_with_ext, "w") as f:
-        f.write(f"{filename_with_ext.stem} = {array}")
+        var_name = filename_with_ext.stem + "_data"
+        f.write(f"{var_name} = {repr(array)}\n")

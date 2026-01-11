@@ -3,6 +3,7 @@ from typing import Type
 import dspy
 
 from stream.main import get_project_structure
+from stream.project import Project
 
 
 def get_signature() -> Type[dspy.Signature]:

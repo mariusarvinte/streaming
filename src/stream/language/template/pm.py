@@ -1,5 +1,3 @@
-import subprocess
-
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
@@ -8,7 +6,6 @@ from typing import Self
 
 @dataclass
 class Project:
-    language: str
     files: list[File] = field(default_factory=list)
 
     @dataclass
@@ -23,12 +20,12 @@ class Project:
     def suffix(self) -> str:
         # TODO: Populate this
         # NOTE: For example, in Python this would be ".py"
-        pass
+        ...
 
     def initialize_modules(self) -> None:
         # TODO: Populate this
         # NOTE: For example, in Python this would be writing __init__.py files in the parent folder of each file
-        pass
+        ...
 
     @cached_property
     def dependency_map(self) -> dict[str, list[Path]]:
@@ -51,40 +48,37 @@ def write_jagged_array_to_file(
     with open(filename_with_ext, "w") as f:
         # TODO: Populate this
         # NOTE: This function should write the Python `array` to a global variable in the given language
-        pass
+        ...
 
 
-def generate_use_statement(location: Path):
-    # TODO: Populate this
-    # NOTE: Avoid using "all" / "star" imports, rather use generic function names as a template e.g., `some_fn_or_variable`
-    # NOTE: For example, in Python this would be an import statement built from `location.parts` and their stems
-    pass
+if __name__ == "__main__":
+    test_files = [
+        Project.File(path=Path("some/folder/test")),
+        Project.File(path=Path("some/folder/inside/file")),
+        Project.File(
+            path=Path("some/folder/inside/meta"),
+            depends_on=[
+                Project.File(path=Path("some/folder/test")),
+                Project.File(path=Path("some/folder/inside/file")),
+            ],
+        ),
+    ]
+    test_project = Project(files=test_files)
+    test_project.initialize_modules()
 
-
-def execute_code(
-    artifact_path: Path,
-    project: Project,
-    success_message: str,
-) -> str:
-    # TODO: Populate this
-    # NOTE: Generate a string `command` which executes the code in `artifact_path`
-    # NOTE: If needed, use `project` to infer cross-file information and generate a `pre_command`
-    # NOTE: If there is no `pre_command`, it should be None
-    pre_command: str = ...
-    command: str = ...
-
-    # NOTE: The code below cannot be modified in any way
-    # Execute the pre-command
-    if pre_command:
-        result = subprocess.run(pre_command, capture_output=True)
-        if result.returncode:
-            return f"Pre-command execution: {pre_command} failed with error {result.stderr}!"
-
-    # Execute the command
-    result = subprocess.run(command, capture_output=True)
-    if result.returncode == 0:
-        return success_message
-
-    return result.stderr
-
-
+    test_array = [
+        (
+            [1, 7, 1, 1, 2],
+            [16, 243],
+        ),
+        (
+            [1, -1],
+            [4, 9, 0, 0],
+        ),
+        (
+            [6],
+            [8, 24, 1],
+        ),
+    ]
+    for file in Project.files:
+        write_jagged_array_to_file(test_array, file.path)
