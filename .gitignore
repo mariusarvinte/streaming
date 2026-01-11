@@ -28,3 +28,4 @@ output
 
 # AI outputs
 src/stream/language/completed/pm.py
+src/stream/language/completed/instrument.py
