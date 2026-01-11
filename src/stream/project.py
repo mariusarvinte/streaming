@@ -10,14 +10,21 @@ from stream.language.completed.python import Project
 from stream.language.completed.python import generate_use_statement
 
 
-def write_code(pred: dspy.Prediction, project: Project):
+def write_code(
+    pred: dspy.Prediction, project: Project, extra: dict[str, str] | None = None
+):
     # Write the code to files
     for name, field in pred.items():
         if type(field).__base__ != dspy.Code:
             continue
 
+        code = (
+            "\n\n".join([code, extra[name]])
+            if extra and extra.get(name)
+            else pred[name].code
+        )
         with open(project.file_map[name], "w") as f:
-            f.write(pred[name].code)
+            f.write(code)
 
 
 # Custom adapter that injects instructions about cross-output dependencies
