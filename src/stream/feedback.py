@@ -16,6 +16,7 @@ class ModuleWithCodeFeedback(dspy.Module):
         base_module: dspy.Module,
         project: Project,
         steps: int = 3,
+        test_code: dict[str, str] | None = None,
         success_message: str = "Code executed successfully!",
         trajectory_len: int = 0,
     ):
@@ -32,6 +33,7 @@ class ModuleWithCodeFeedback(dspy.Module):
 
         self.project = project
         self.steps = steps
+        self.test_code = test_code
         self.success_message = success_message
         self.trajectory_len = trajectory_len
 
@@ -95,7 +97,7 @@ class ModuleWithCodeFeedback(dspy.Module):
             with dspy.context(adapter=FeedbackWrapperAdapter()):
                 outputs = self.base_module(**kwargs)
 
-            write_code(outputs, self.project)
+            write_code(outputs, self.project, extra=self.test_code)
 
             advice = dict()
             if attempts is None:
