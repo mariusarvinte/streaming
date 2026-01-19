@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Self
 
 
-type Scalar = str | int | float
+type Scalar = str | int | float | bool
 type NestedArray = Scalar | list[NestedArray]
 
 
