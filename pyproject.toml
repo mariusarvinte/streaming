@@ -5,12 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "dspy>=3.0.4",
-    "pytest>=9.0.2",
+    "dspy==3.1.0",
+    "pytest==9.0.2",
 ]
-
-[tool.uv.sources]
-dspy = { git = "https://github.com/stanfordnlp/dspy.git" }
 
 [tool.ruff]
 extend-exclude = ["output/*.py"]

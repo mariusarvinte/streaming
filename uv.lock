@@ -272,8 +272,8 @@ wheels = [
 
 [[package]]
 name = "dspy"
-version = "3.1.0b1"
-source = { git = "https://github.com/stanfordnlp/dspy.git#475369a4256884c1dfe24c20defea3d92436ed03" }
+version = "3.1.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
     { name = "asyncer" },
@@ -293,6 +293,10 @@ dependencies = [
     { name = "tenacity" },
     { name = "tqdm" },
     { name = "xxhash" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d9/bd/339e1d949aa24e50b6edca8574cf8afbff005a1dfadc2d5b82a0003fa7da/dspy-3.1.0.tar.gz", hash = "sha256:3c1660cb687411f064509cd7ac47ed0231761f50ed92823cbbb59b3af2885702", size = 242611, upload-time = "2026-01-06T18:50:18.655Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ca/34/64e900657cad3c4df8a417fccbc4370ca851864edbd0f468210f1b57d084/dspy-3.1.0-py3-none-any.whl", hash = "sha256:b9f4d42cad9ac32b13fdf085dd3246c8ee8339c759cb291c5e7b7f9f5fb5dd72", size = 291317, upload-time = "2026-01-06T18:50:17.559Z" },
 ]
 
 [[package]]
@@ -1459,8 +1463,8 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dspy", git = "https://github.com/stanfordnlp/dspy.git" },
-    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "dspy", specifier = "==3.1.0" },
+    { name = "pytest", specifier = "==9.0.2" },
 ]
 
 [[package]]
