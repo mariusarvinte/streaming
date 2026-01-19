@@ -67,6 +67,9 @@ def execute_code(
     return result.stderr
 
 
+# TODO: Extend this for:
+# TODO: strings, floating-point values, matrices
+# TODO: Arbitrary number of inputs and/or outputs
 def write_jagged_array_to_file(
     array: list[tuple[list[int], list[int]]],
     filename_with_ext: Path,
