@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "datasets==4.5.0",
     "dspy==3.1.0",
     "pytest==9.0.2",
 ]
