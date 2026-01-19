@@ -64,6 +64,7 @@ def validate_with_template(
                     break
 
     if not all(valid):
-        feedback = f"You must strictly follow the provided template and only modify the code where it is marked with {allowed_change}!"
+        feedback = f"You must strictly follow the provided template and \
+only modify the code where it is marked with {allowed_change}!"
 
     return all(valid), feedback

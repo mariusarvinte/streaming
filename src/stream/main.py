@@ -65,14 +65,14 @@ def main(args):
     class ProblemSolving(dspy.Signature):
         """You are an expert in solving algorithmic problems using {language}."""
 
-        project: Project = dspy.InputField(desc=proj_structure)
-
         problem: str = dspy.InputField(
             desc="The description of the problem to be solved",
         )
         cases: dspy.Code[args.language] = dspy.InputField(
             desc="The paired inputs and outputs for the problem written as jagged arrays",
         )
+
+        project: Project = dspy.InputField(desc=proj_structure)
 
         explanation: str = dspy.OutputField(
             desc="An explanation of the implementation of `solution`"
@@ -113,7 +113,8 @@ def main(args):
     # Perform the task on some inputs
     inputs = {
         "project": None,
-        "problem": """Given an integer array `nums` sorted in non-decreasing order, consider the number of unique elements in `nums` to be `k`.
+        "problem": """Given an integer array `nums` sorted in non-decreasing order,\
+consider the number of unique elements in `nums` to be `k`.
     Return the number of unique elements `k`.""",
         "cases": proj_structure.file_map["cases"].read_text(),
     }

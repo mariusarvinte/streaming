@@ -6,7 +6,7 @@ from stream.language.completed.pm import Project
 
 def generate_use_statement(location: Path):
     # TODO: Populate this
-    # NOTE: Avoid using "all" / "star" imports, rather use generic function names as a template e.g., `some_fn_or_variable`
+    # NOTE: Avoid using "all" / "star" imports. Use generic function names as a template e.g., `some_fn_or_variable`
     # NOTE: For example, in Python this would be an import statement built from `location.parts` and their stems
     ...
 
