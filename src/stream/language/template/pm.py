@@ -4,6 +4,10 @@ from pathlib import Path
 from typing import Self
 
 
+type Scalar = str | int | float
+type NestedArray = Scalar | list[NestedArray]
+
+
 @dataclass
 class Project:
     files: list[File] = field(default_factory=list)
@@ -39,10 +43,11 @@ class Project:
         return mapping
 
 
-def write_jagged_array_to_file(
-    array: list[tuple[list[int], list[int]]],
+def write_cases_to_file(
+    array: list[tuple[NestedArray[Scalar], NestedArray[Scalar]]],
     filename_with_ext: Path,
 ) -> None:
+    # Write a single multi-dimensional array
     with open(filename_with_ext, "w") as f:
         # TODO: Populate this
         # NOTE: This function should write the Python `array` to a global variable in the given language
@@ -79,6 +84,4 @@ if __name__ == "__main__":
         ),
     ]
     for file in test_project.files:
-        write_jagged_array_to_file(
-            test_array, file.path.with_suffix(test_project.suffix)
-        )
+        write_cases_to_file(test_array, file.path.with_suffix(test_project.suffix))
