@@ -1626,7 +1626,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "datasets", specifier = ">=4.5.0" },
+    { name = "datasets", specifier = "==4.5.0" },
     { name = "dspy", specifier = "==3.1.0" },
     { name = "pytest", specifier = "==9.0.2" },
 ]
