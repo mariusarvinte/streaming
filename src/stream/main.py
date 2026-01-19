@@ -9,7 +9,9 @@ from stream.project import FileAdapter
 from stream.feedback import ModuleWithCodeFeedback
 
 from stream.language.completed.python import Project
-from stream.language.completed.python import write_jagged_array_to_file
+from stream.language.completed.python import write_cases_to_file
+
+from stream.dataset import get_dataset
 
 
 def get_project_structure(name: str, project_class: type) -> Project:
@@ -108,7 +110,7 @@ def main(args):
         ([4, 4, 4, 4, 4], [1]),
         ([26, 999, 1003], [3]),
     ]
-    write_jagged_array_to_file(cases, proj_structure.file_map["cases"])
+    write_cases_to_file(cases, proj_structure.file_map["cases"])
 
     # Perform the task on some inputs
     inputs = {

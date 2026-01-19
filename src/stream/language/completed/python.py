@@ -7,6 +7,10 @@ from pathlib import Path
 from typing import Self
 
 
+type Scalar = str | int | float
+type NestedArray = Scalar | list[NestedArray]
+
+
 @dataclass
 class Project:
     files: list[File] = field(default_factory=list)
@@ -67,13 +71,10 @@ def execute_code(
     return result.stderr
 
 
-# TODO: Extend this for:
-# TODO: strings, floating-point values, matrices
-# TODO: Arbitrary number of inputs and/or outputs
-def write_jagged_array_to_file(
-    array: list[tuple[list[int], list[int]]],
+def write_cases_to_file(
+    array: list[tuple[NestedArray[Scalar], NestedArray[Scalar]]],
     filename_with_ext: Path,
 ) -> None:
     # Write a single multi-dimensional array
     with open(filename_with_ext, "w") as f:
-        f.write(f"{filename_with_ext.stem} = {array}")
+        f.write(f"{filename_with_ext.stem} = {str(array)}")
