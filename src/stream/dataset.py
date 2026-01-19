@@ -1,5 +1,5 @@
+import ast
 import re
-
 from datasets import load_dataset, Dataset
 
 from stream.language.completed.python import Cases
@@ -22,21 +22,55 @@ def get_problem_description(
     cases: Cases = []
     for i in range(1, len(parts) - 1):
         example = parts[i].strip()
+        example.replace("null", "None")
 
         # Extract inputs
         start_str = "Input:"
         end_str = "Output:"
         pattern = rf"{start_str}(.*?){end_str}"
-        substrings = re.findall(pattern, example)
-        breakpoint()
-        if len(substrings) > 1:
+        substrings = re.findall(pattern, example, re.DOTALL)
+        if len(substrings) != 1:
             raise RuntimeError("Input extraction failed!")
         case_inputs = substrings[0].strip()
 
-        # Delete all named assignments
+        # Delete all named assignments from inputs
+        case_inputs = list(case_inputs)
+        to_pop = []
+        for i, letter in enumerate(case_inputs):
+            # Pop from the left
+            if letter == "=":
+                to_pop.append(i)
+                for j in range(i - 1, -1, -1):
+                    if case_inputs[j] == ",":
+                        break
+                    to_pop.append(j)
+        for i in reversed(sorted(to_pop)):
+            case_inputs.pop(i)
+        case_inputs = f"[{''.join(case_inputs).strip()}]"
+        try:
+            case_inputs = ast.literal_eval(case_inputs)
+        except (ValueError, SyntaxError) as e:
+            print(e)
+            raise RuntimeError("Input evaluation failed!")
 
-        case_output = ...
+        # Some examples may not have explanations
+        start_str = "Output:"
+        end_str = "Explanation:"
+        if end_str not in example:
+            substrings = re.split(start_str, example)[1:]
+        else:
+            pattern = rf"{start_str}(.*?){end_str}"
+            substrings = re.findall(pattern, example, re.DOTALL)
 
-        cases.append((case_inputs, case_output))
+        if len(substrings) != 1:
+            raise RuntimeError("Output extraction failed!")
+
+        try:
+            case_outputs = ast.literal_eval(substrings[0].strip())
+        except (ValueError, SyntaxError) as e:
+            print(e)
+            raise RuntimeError("Output evaluation failed!")
+
+        cases.append((case_inputs, case_outputs))
 
     return desc, cases

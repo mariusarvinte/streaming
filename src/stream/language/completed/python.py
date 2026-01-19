@@ -6,8 +6,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Self
 
-# TODO: Accomodate "null" scalars -> None
-type Scalar = str | int | float | bool
+type Scalar = str | int | float | bool | None
 type NestedArray = Scalar | list[NestedArray]
 type Cases = list[tuple[NestedArray[Scalar], NestedArray[Scalar]]]
 

@@ -62,6 +62,7 @@ def main(args):
     dspy.configure(lm=lm)
 
     # Create the folder structure
+    # TODO: Create this per-sample
     proj_structure = get_project_structure(args.proj_name, Project)
     proj_structure.initialize_modules()
 
@@ -129,6 +130,7 @@ def main(args):
             pred = module(**inputs)
 
     # Save the original stdout to restore it later
+    # TODO: Log per sample
     original_stdout = sys.stdout
     with open("./history.txt", "w") as f:
         # Redirect stdout to the file

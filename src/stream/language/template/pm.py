@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Self
 
 
-type Scalar = str | int | float | bool
+type Scalar = str | int | float | bool | None
 type NestedArray = Scalar | list[NestedArray]
 type Cases = list[tuple[NestedArray[Scalar], NestedArray[Scalar]]]
 
