@@ -6,9 +6,10 @@ from functools import cached_property
 from pathlib import Path
 from typing import Self
 
-
+# TODO: Accomodate "null" scalars -> None
 type Scalar = str | int | float | bool
 type NestedArray = Scalar | list[NestedArray]
+type Cases = list[tuple[NestedArray[Scalar], NestedArray[Scalar]]]
 
 
 @dataclass
@@ -71,10 +72,7 @@ def execute_code(
     return result.stderr
 
 
-def write_cases_to_file(
-    array: list[tuple[NestedArray[Scalar], NestedArray[Scalar]]],
-    filename_with_ext: Path,
-) -> None:
+def write_cases_to_file(array: Cases, filename_with_ext: Path) -> None:
     # Write a single multi-dimensional array
     with open(filename_with_ext, "w") as f:
         f.write(f"{filename_with_ext.stem} = {str(array)}")

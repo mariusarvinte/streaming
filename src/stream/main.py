@@ -3,6 +3,7 @@ import os
 import sys
 
 from pathlib import Path
+import datasets
 import dspy
 
 from stream.project import FileAdapter
@@ -11,7 +12,7 @@ from stream.feedback import ModuleWithCodeFeedback
 from stream.language.completed.python import Project
 from stream.language.completed.python import write_cases_to_file
 
-from stream.dataset import get_dataset
+from stream.dataset import get_dataset, get_problem_description
 
 
 def get_project_structure(name: str, project_class: type) -> Project:
@@ -104,25 +105,28 @@ def main(args):
         project=proj_structure,
     )
 
-    # The test cases for the problem (jagged array)
-    cases = [
-        ([1, 1, 4, 6, 7, 9], [5]),
-        ([4, 4, 4, 4, 4], [1]),
-        ([26, 999, 1003], [3]),
-    ]
-    write_cases_to_file(cases, proj_structure.file_map["cases"])
+    # Load dataset
+    ds: datasets.Dataset = get_dataset("newfacade/LeetCodeDataset")
+    for sample in ds["train"]:
+        if "Constraints:" not in sample["problem_description"]:
+            raise ValueError("Found a sample without 'Constraints:'!")
 
-    # Perform the task on some inputs
-    inputs = {
-        "project": None,
-        "problem": """Given an integer array `nums` sorted in non-decreasing order,\
-consider the number of unique elements in `nums` to be `k`.
-    Return the number of unique elements `k`.""",
-        "cases": proj_structure.file_map["cases"].read_text(),
-    }
+        desc, cases = get_problem_description(sample["problem_description"])
 
-    with dspy.context(adapter=FileAdapter()):
-        pred = module(**inputs)
+        if "Example:" in desc:
+            raise ValueError("Examples should not be found in the problem description!")
+
+        write_cases_to_file(cases, proj_structure.file_map["cases"])
+
+        # Form inputs
+        inputs = {
+            "project": None,
+            "problem": desc,
+            "cases": proj_structure.file_map["cases"].read_text(),
+        }
+
+        with dspy.context(adapter=FileAdapter()):
+            pred = module(**inputs)
 
     # Save the original stdout to restore it later
     original_stdout = sys.stdout
