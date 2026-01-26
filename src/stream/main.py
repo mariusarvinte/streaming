@@ -66,7 +66,9 @@ def main(args):
     dspy.configure(lm=lm)
 
     class ProblemSolvingGeneric(dspy.Signature):
-        """You are an expert in solving algorithmic problems using {language}."""
+        """You are an expert in solving algorithmic problems using {language}.
+        Re-use as much code as possible between different outputs, instead of re-defining or copying code.
+        Functionalize the code as much as possible, so it can be re-used."""
 
         problem: str = dspy.InputField(
             desc="The description of the problem to be solved",
