@@ -47,6 +47,7 @@ def get_problem_description(
         for i in reversed(sorted(to_pop)):
             case_inputs.pop(i)
         case_inputs = f"[{''.join(case_inputs).strip()}]"
+        case_inputs = case_inputs.replace("\xa0", "")
         try:
             case_inputs = ast.literal_eval(case_inputs)
         except (ValueError, SyntaxError) as e:
