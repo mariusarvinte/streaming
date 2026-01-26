@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
@@ -27,8 +28,8 @@ class Project:
         ...
 
     def initialize_modules(self) -> None:
-        # TODO: Populate this
-        ...
+        for file in self.files:
+            os.makedirs(file.path.parent, exist_ok=True)
 
     @cached_property
     def dependency_map(self) -> dict[str, list[Path]]:
