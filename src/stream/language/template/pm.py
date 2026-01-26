@@ -49,6 +49,7 @@ def write_cases_to_file(array: Cases, filename_with_ext: Path) -> None:
     with open(filename_with_ext, "w") as f:
         # TODO: Populate this
         # NOTE: This function should write the Python `array` to a global variable in the given language
+        # NOTE: The code must be stand-alone runnable and/or compilable, including any data structure definitions
         ...
 
 
