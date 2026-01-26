@@ -206,8 +206,7 @@ def write_jagged_array_to_file(
 ) -> None:
     with open(filename_with_ext, "w") as f:
         # TODO: Populate this
-        # NOTE: This function should write the Python `array` to a global variable in the given language
-        ...
+        code = stuff
 """.strip()
 
 
